@@ -1,6 +1,28 @@
 # Data Health Check API
 
-A simple FastAPI application that checks sample datasets for missing values and duplicate IDs.
+*Mccoy Asas*
+
+A simple FastAPI application that checks sample retail datasets for missing values and duplicate IDs.
+
+## Setup
+
+1. Install the dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Create a `.env` file and add:
+
+```env
+FASTAPI_ENDPOINT_URL=http://localhost:8000
+```
+
+3. Start the FastAPI server:
+
+```bash
+uvicorn main:app --reload --port 8000
+```
 
 ## Endpoints
 
@@ -8,17 +30,15 @@ A simple FastAPI application that checks sample datasets for missing values and 
 |---|---|---|---|
 | GET | `/health` | Checks if the API is running | None |
 | GET | `/datasets` | Lists available datasets | None |
-| GET | `/datasets/{dataset_id}/quality` | Checks for missing values and duplicate IDs | `dataset_id` (int) |
+| GET | `/datasets/{dataset_id}/quality` | Checks for missing values and duplicate IDs | `dataset_id` (int, required) |
+
+**Available datasets:**
+- `1` — Customer Records
+- `2` — Product Inventory
 
 ## Sample Usage
 
-Start the server:
-
-```bash
-uvicorn main:app --reload --port 8000
-```
-
-Test the endpoints:
+Test the endpoints using `curl`:
 
 ```bash
 curl http://localhost:8000/health
@@ -27,7 +47,7 @@ curl http://localhost:8000/datasets/1/quality
 curl http://localhost:8000/datasets/2/quality
 ```
 
-Or run the Python client:
+Or run the Python client in a separate terminal:
 
 ```bash
 python client.py
@@ -35,7 +55,8 @@ python client.py
 
 ## Sample Output
 
-**GET `/health`**
+### GET `/health`
+
 ```json
 {
     "status": "healthy",
@@ -43,7 +64,8 @@ python client.py
 }
 ```
 
-**GET `/datasets`**
+### GET `/datasets`
+
 ```json
 [
     {"id": 1, "name": "Customer Records", "total_records": 4},
@@ -51,7 +73,8 @@ python client.py
 ]
 ```
 
-**GET `/datasets/1/quality`**
+### GET `/datasets/1/quality`
+
 ```json
 {
     "dataset": "Customer Records",
@@ -61,7 +84,8 @@ python client.py
 }
 ```
 
-**GET `/datasets/2/quality`**
+### GET `/datasets/2/quality`
+
 ```json
 {
     "dataset": "Product Inventory",
@@ -70,3 +94,10 @@ python client.py
     "duplicate_ids": 0
 }
 ```
+
+## Notes
+
+- The API uses two hardcoded sample datasets.
+- `missing_values` counts fields containing `None`.
+- `duplicate_ids` counts repeated ID occurrences beyond the first.
+- The API returns data quality results without modifying the datasets.
