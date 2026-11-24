@@ -1,0 +1,47 @@
+{
+    "1": {
+        "name": "Customer Records",
+        "records": [
+            {
+                "id": 1,
+                "name": "Alice",
+                "email": "alice@example.com"
+            },
+            {
+                "id": 2,
+                "name": "Bob",
+                "email": null
+            },
+            {
+                "id": 2,
+                "name": "Bob",
+                "email": null
+            },
+            {
+                "id": 3,
+                "name": "Charlie",
+                "email": "charlie@example.com"
+            }
+        ]
+    },
+    "2": {
+        "name": "Product Inventory",
+        "records": [
+            {
+                "id": 1,
+                "name": "Laptop",
+                "price": 45000
+            },
+            {
+                "id": 2,
+                "name": "Mouse",
+                "price": 500
+            },
+            {
+                "id": 3,
+                "name": "Keyboard",
+                "price": null
+            }
+        ]
+    }
+}

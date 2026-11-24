@@ -1,27 +1,35 @@
-from fastapi import FastAPI, HTTPException
+import json
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException, status
+from pydantic import BaseModel
 
 app = FastAPI()
 
+class Dataset(BaseModel):
+    name: str
+    records: list[dict]
 
-datasets = {
-    1: {
-        "name": "Customer Records",
-        "records": [
-            {"id": 1, "name": "Alice", "email": "alice@example.com"},
-            {"id": 2, "name": "Bob", "email": None},
-            {"id": 2, "name": "Bob", "email": None},
-            {"id": 3, "name": "Charlie", "email": "charlie@example.com"}
-        ]
-    },
-    2: {
-        "name": "Product Inventory",
-        "records": [
-            {"id": 1, "name": "Laptop", "price": 45000},
-            {"id": 2, "name": "Mouse", "price": 500},
-            {"id": 3, "name": "Keyboard", "price": None}
-        ]
-    }
-}
+class DatasetUpdate(BaseModel):
+    name: str | None = None
+    records: list[dict] | None = None
+
+DATASETS_PATH = Path(__file__).with_name("datasets.json")
+
+
+def load_datasets():
+    with open(DATASETS_PATH, "r") as file:
+        data = json.load(file)
+
+    return {int(dataset_id): dataset for dataset_id, dataset in data.items()}
+
+
+def save_datasets():
+    with open(DATASETS_PATH, "w") as file:
+        json.dump(datasets, file, indent=4)
+
+
+datasets = load_datasets()
 
 
 @app.get("/health")
@@ -42,6 +50,51 @@ def get_datasets():
         }
         for dataset_id, dataset in datasets.items()
     ]
+
+@app.post("/datasets", status_code=status.HTTP_201_CREATED)
+def create_dataset(payload: Dataset):
+    if any(dataset["name"] == payload.name for dataset in datasets.values()):
+        raise HTTPException(409, "Dataset name already exists")
+
+    new_id = max(datasets.keys(), default=0) + 1
+
+    datasets[new_id] = payload.model_dump()
+    save_datasets()
+
+    return {"id": new_id, **datasets[new_id]}
+
+@app.patch("/datasets/{dataset_id}")
+def update_dataset(dataset_id: int, payload: DatasetUpdate):
+    dataset = datasets.get(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(404, "Dataset not found")
+
+    changes = payload.model_dump(exclude_unset=True)
+
+    if any(value is None for value in changes.values()):
+        raise HTTPException(422, "Dataset fields cannot be null")
+
+    if "name" in changes:
+        if any(
+            item["name"] == changes["name"]
+            for item_id, item in datasets.items()
+            if item_id != dataset_id
+        ):
+            raise HTTPException(409, "Dataset name already exists")
+
+    dataset.update(changes)
+    save_datasets()
+
+    return {"id": dataset_id, **dataset}
+
+@app.delete("/datasets/{dataset_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_dataset(dataset_id: int):
+    if dataset_id not in datasets:
+        raise HTTPException(404, "Dataset not found")
+
+    del datasets[dataset_id]
+    save_datasets()
 
 # new endpoint based on the feedback  
 @app.get("/datasets/{dataset_id}")
@@ -71,7 +124,7 @@ def get_data_quality(dataset_id: int):
         for value in record.values()
     )
 
-    ids = [record["id"] for record in records]
+    ids = [record["id"] for record in records if "id" in record]
     duplicate_ids = len(ids) - len(set(ids))
 
     return {
