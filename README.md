@@ -24,6 +24,8 @@ FASTAPI_ENDPOINT_URL=http://localhost:8000
 uvicorn main:app --reload --port 8000
 ```
 
+4. Access FastAPI's interactive documentation at `http://localhost:8000/docs` to view and test the available endpoints.
+
 ## Endpoints
 
 | Method | Endpoint | Description | Parameters |
@@ -40,7 +42,7 @@ uvicorn main:app --reload --port 8000
 - `1` — Customer Records
 - `2` — Product Inventory
 
-Additional datasets can be created using the POST endpoint.
+Additional datasets can be created using the POST endpoint. Dataset IDs are generated automatically.
 
 ## Sample Usage
 
@@ -95,7 +97,9 @@ Delete the dataset using DELETE:
 curl -X DELETE http://localhost:8000/datasets/3
 ```
 
-Or run the Python client in a separate terminal:
+**Note:** The examples above assume the newly created dataset is assigned ID `3`. The actual ID may differ if additional datasets already exist.
+
+Alternatively, run the Python client in a separate terminal:
 
 ```bash
 python client.py
@@ -192,8 +196,9 @@ Returns `204 No Content` when the dataset is successfully deleted.
 
 - The API starts with two sample datasets stored in `datasets.json`.
 - New datasets and changes are saved to `datasets.json`.
+- Dataset IDs are generated automatically when creating new datasets.
 - `missing_values` counts fields containing `None` (or `null` in JSON).
-- `duplicate_ids` counts repeated ID occurrences beyond the first.
+- `duplicate_ids` counts repeated ID occurrences beyond the first, ignoring records without an `id` field.
 - PATCH updates the dataset name or replaces its records without changing unspecified fields.
 - The quality-check endpoint returns results without modifying the datasets.
 - The API returns `404` for nonexistent datasets, `409` for duplicate dataset names, and `422` for invalid requests.

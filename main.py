@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+# models for creating and updating datasets
 class Dataset(BaseModel):
     name: str
     records: list[dict]
@@ -17,13 +18,14 @@ class DatasetUpdate(BaseModel):
 DATASETS_PATH = Path(__file__).with_name("datasets.json")
 
 
+# load datasets from JSON and converts IDs to integers
 def load_datasets():
     with open(DATASETS_PATH, "r") as file:
         data = json.load(file)
 
     return {int(dataset_id): dataset for dataset_id, dataset in data.items()}
 
-
+# save dataset changes to JSON  
 def save_datasets():
     with open(DATASETS_PATH, "w") as file:
         json.dump(datasets, file, indent=4)
@@ -51,6 +53,7 @@ def get_datasets():
         for dataset_id, dataset in datasets.items()
     ]
 
+# create a new dataset and prevent duplicate names 
 @app.post("/datasets", status_code=status.HTTP_201_CREATED)
 def create_dataset(payload: Dataset):
     if any(dataset["name"] == payload.name for dataset in datasets.values()):
@@ -63,6 +66,7 @@ def create_dataset(payload: Dataset):
 
     return {"id": new_id, **datasets[new_id]}
 
+# update only the fields provided in the request
 @app.patch("/datasets/{dataset_id}")
 def update_dataset(dataset_id: int, payload: DatasetUpdate):
     dataset = datasets.get(dataset_id)
@@ -72,6 +76,7 @@ def update_dataset(dataset_id: int, payload: DatasetUpdate):
 
     changes = payload.model_dump(exclude_unset=True)
 
+    # prevent null values and duplicate dataset names
     if any(value is None for value in changes.values()):
         raise HTTPException(422, "Dataset fields cannot be null")
 
@@ -88,6 +93,7 @@ def update_dataset(dataset_id: int, payload: DatasetUpdate):
 
     return {"id": dataset_id, **dataset}
 
+# delete a dataset and save the changes 
 @app.delete("/datasets/{dataset_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_dataset(dataset_id: int):
     if dataset_id not in datasets:
@@ -96,7 +102,7 @@ def delete_dataset(dataset_id: int):
     del datasets[dataset_id]
     save_datasets()
 
-# new endpoint based on the feedback  
+# retrieve a specific dataset (added from Exercise 1 feedback)
 @app.get("/datasets/{dataset_id}")
 def get_dataset(dataset_id: int):
     dataset = datasets.get(dataset_id)
