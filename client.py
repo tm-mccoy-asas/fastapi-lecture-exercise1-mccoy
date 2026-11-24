@@ -20,5 +20,7 @@ def GET_ENDPOINT(route: str):
 
 GET_ENDPOINT("/health")
 GET_ENDPOINT("/datasets")
+GET_ENDPOINT("/datasets/1")
+GET_ENDPOINT("/datasets/2")
 GET_ENDPOINT("/datasets/1/quality")
 GET_ENDPOINT("/datasets/2/quality")

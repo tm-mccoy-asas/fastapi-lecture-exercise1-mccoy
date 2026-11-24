@@ -43,6 +43,16 @@ def get_datasets():
         for dataset_id, dataset in datasets.items()
     ]
 
+# new endpoint based on the feedback  
+@app.get("/datasets/{dataset_id}")
+def get_dataset(dataset_id: int):
+    dataset = datasets.get(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(404, "Dataset not found")
+
+    return {"id": dataset_id, **dataset}
+
 
 @app.get("/datasets/{dataset_id}/quality")
 def get_data_quality(dataset_id: int):
